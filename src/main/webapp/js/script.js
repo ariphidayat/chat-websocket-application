@@ -1,9 +1,8 @@
-var ws;
-var log;
-var msg;
+var ws, log, msg, username;
 
 function connect() {
-    ws = new WebSocket("ws://localhost:8080/chat-websocket-application/chat");
+    username = document.getElementById("username").value;
+    ws = new WebSocket("ws://localhost:8080/chat-websocket-application/chat/" + username);
 
 
     ws.onmessage = function(event) {
