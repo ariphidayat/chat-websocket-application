@@ -1,0 +1,21 @@
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+target
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# IntelliJ IDEA
+.idea
+*.iml
