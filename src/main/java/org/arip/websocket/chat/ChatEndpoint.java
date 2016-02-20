@@ -47,7 +47,7 @@ public class ChatEndpoint {
     @OnClose
     public void onClose(Session session) throws IOException {
         log.info(session.getId() + " disconnected!");
-        broadcast(session.getId() + " disconnected!");
+        broadcast(users.get(session.getId()) + " disconnected!");
     }
 
     private static void broadcast(String message) throws IOException {

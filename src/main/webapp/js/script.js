@@ -16,4 +16,5 @@ function send() {
     msg = document.getElementById("msg").value;
     to = document.getElementById("to").value;
     ws.send(to + "~"+ msg);
+    log.innerHTML += "Me : " + msg + "\n";
 }
