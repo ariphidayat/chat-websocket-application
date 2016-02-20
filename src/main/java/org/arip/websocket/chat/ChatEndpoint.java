@@ -42,7 +42,9 @@ public class ChatEndpoint {
 
     private static void broadcast(String message) throws IOException {
         for (ChatEndpoint endpoint : chatEndpoints) {
-            endpoint.session.getBasicRemote().sendText(message);
+            synchronized(endpoint) {
+                endpoint.session.getBasicRemote().sendText(message);
+            }
         }
     }
 }
