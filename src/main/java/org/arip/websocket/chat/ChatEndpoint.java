@@ -37,7 +37,11 @@ public class ChatEndpoint {
     @OnMessage
     public void onMessage(Session session, String message) throws IOException, EncodeException {
         log.info(message);
-        broadcast(users.get(session.getId()) + " : " + message);
+
+        String to = extractTo(message);
+        String toSessionId = getSessionId(to);
+        String actualMessage = extractActualMessage(message);
+        sendMessageToOneUser(users.get(session.getId()) + " : " + actualMessage, toSessionId);
     }
 
     @OnClose
@@ -52,5 +56,36 @@ public class ChatEndpoint {
                 endpoint.session.getBasicRemote().sendText(message);
             }
         }
+    }
+
+    private static void sendMessageToOneUser(String message, String toSessionId) throws IOException {
+        for (ChatEndpoint endpoint : chatEndpoints) {
+            synchronized(endpoint) {
+                if (endpoint.session.getId().equals(toSessionId)) {
+                    endpoint.session.getBasicRemote().sendText(message);
+                }
+            }
+        }
+    }
+
+    private String getSessionId(String to) {
+        if (users.containsValue(to)) {
+            for (String sessionId: users.keySet()) {
+                if (users.get(sessionId).equals(to)) {
+                    return sessionId;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String extractTo(String message) {
+        String[] to = message.split("~");
+        return to[0];
+    }
+
+    private String extractActualMessage(String message) {
+        String[] to = message.split("~");
+        return to[1];
     }
 }

@@ -1,4 +1,4 @@
-var ws, log, msg, username;
+var ws, log, msg, username, to;
 
 function connect() {
     username = document.getElementById("username").value;
@@ -14,5 +14,6 @@ function connect() {
 
 function send() {
     msg = document.getElementById("msg").value;
-    ws.send(msg);
+    to = document.getElementById("to").value;
+    ws.send(to + "~"+ msg);
 }
