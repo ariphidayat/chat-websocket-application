@@ -8,13 +8,14 @@ function connect() {
     ws.onmessage = function(event) {
     log = document.getElementById("log");
         console.log(event.data);
-        log.innerHTML += event.data + "\n";
+        var message = JSON.parse(event.data);
+        log.innerHTML += message.from + " : " + message.content + "\n";
     };
 }
 
 function send() {
     msg = document.getElementById("msg").value;
     to = document.getElementById("to").value;
-    ws.send(to + "~"+ msg);
+    ws.send('{"to":"'+ to +'", "content":"' + msg + '"}');
     log.innerHTML += "Me : " + msg + "\n";
 }

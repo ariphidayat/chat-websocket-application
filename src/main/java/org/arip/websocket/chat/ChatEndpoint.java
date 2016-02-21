@@ -13,7 +13,11 @@ import javax.websocket.server.ServerEndpoint;
  *
  * @author Arip Hidayat
  */
-@ServerEndpoint(value="/chat/{username}")
+@ServerEndpoint(
+        value="/chat/{username}",
+        decoders = MessageDecoder.class,
+        encoders = MessageEncoder.class
+)
 public class ChatEndpoint {
     private final Logger log = Logger.getLogger(getClass().getName());
 
@@ -23,52 +27,57 @@ public class ChatEndpoint {
     private static HashMap<String,String> users = new HashMap<>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String username) throws IOException {
+    public void onOpen(Session session, @PathParam("username") String username) throws IOException, EncodeException {
+        log.info(session.getId() + " connected!");
+
         this.session = session;
         this.username = username;
         chatEndpoints.add(this);
         users.put(session.getId(), username);
 
-        String message = username + " connected!";
-        log.info(message);
+        Message message = new Message();
+        message.setFrom(username);
+        message.setContent("connected!");
         broadcast(message);
     }
 
     @OnMessage
-    public void onMessage(Session session, String message) throws IOException, EncodeException {
-        log.info(message);
+    public void onMessage(Session session, Message message) throws IOException, EncodeException {
+        log.info(message.toString());
 
-        String to = extractTo(message);
-        String toSessionId = getSessionId(to);
-        String actualMessage = extractActualMessage(message);
-        sendMessageToOneUser(users.get(session.getId()) + " : " + actualMessage, toSessionId);
+        message.setFrom(users.get(session.getId()));
+        sendMessageToOneUser(message);
     }
 
     @OnClose
-    public void onClose(Session session) throws IOException {
+    public void onClose(Session session) throws IOException, EncodeException {
         log.info(session.getId() + " disconnected!");
-        broadcast(users.get(session.getId()) + " disconnected!");
+
+        Message message = new Message();
+        message.setFrom(users.get(session.getId()));
+        message.setContent("disconnected!");
+        broadcast(message);
     }
 
-    private static void broadcast(String message) throws IOException {
+    private static void broadcast(Message message) throws IOException, EncodeException {
         for (ChatEndpoint endpoint : chatEndpoints) {
             synchronized(endpoint) {
-                endpoint.session.getBasicRemote().sendText(message);
+                endpoint.session.getBasicRemote().sendObject(message);
             }
         }
     }
 
-    private static void sendMessageToOneUser(String message, String toSessionId) throws IOException {
+    private static void sendMessageToOneUser(Message message) throws IOException, EncodeException {
         for (ChatEndpoint endpoint : chatEndpoints) {
             synchronized(endpoint) {
-                if (endpoint.session.getId().equals(toSessionId)) {
-                    endpoint.session.getBasicRemote().sendText(message);
+                if (endpoint.session.getId().equals(getSessionId(message.getTo()))) {
+                    endpoint.session.getBasicRemote().sendObject(message);
                 }
             }
         }
     }
 
-    private String getSessionId(String to) {
+    private static String getSessionId(String to) {
         if (users.containsValue(to)) {
             for (String sessionId: users.keySet()) {
                 if (users.get(sessionId).equals(to)) {
@@ -77,15 +86,5 @@ public class ChatEndpoint {
             }
         }
         return null;
-    }
-
-    private String extractTo(String message) {
-        String[] to = message.split("~");
-        return to[0];
-    }
-
-    private String extractActualMessage(String message) {
-        String[] to = message.split("~");
-        return to[1];
     }
 }
