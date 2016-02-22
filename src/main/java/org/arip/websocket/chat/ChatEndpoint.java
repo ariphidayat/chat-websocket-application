@@ -53,10 +53,16 @@ public class ChatEndpoint {
     public void onClose(Session session) throws IOException, EncodeException {
         log.info(session.getId() + " disconnected!");
 
+        chatEndpoints.remove(this);
         Message message = new Message();
         message.setFrom(users.get(session.getId()));
         message.setContent("disconnected!");
         broadcast(message);
+    }
+
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        log.warning(throwable.toString());
     }
 
     private static void broadcast(Message message) throws IOException, EncodeException {
