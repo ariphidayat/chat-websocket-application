@@ -1,12 +1,12 @@
-var ws, log, msg, username, to;
+var ws;
 
 function connect() {
-    username = document.getElementById("username").value;
-    ws = new WebSocket("ws://localhost:8080/chat-websocket-application/chat/" + username);
+    var username = document.getElementById("username").value;
+    ws = new WebSocket("ws://" + document.location.host + "/chat-websocket-application/chat/" + username);
 
 
     ws.onmessage = function(event) {
-    log = document.getElementById("log");
+    var log = document.getElementById("log");
         console.log(event.data);
         var message = JSON.parse(event.data);
         log.innerHTML += message.from + " : " + message.content + "\n";
@@ -14,8 +14,13 @@ function connect() {
 }
 
 function send() {
-    msg = document.getElementById("msg").value;
-    to = document.getElementById("to").value;
-    ws.send('{"to":"'+ to +'", "content":"' + msg + '"}');
-    log.innerHTML += "Me : " + msg + "\n";
+    var content = document.getElementById("msg").value;
+    var to = document.getElementById("to").value;
+    var json = JSON.stringify({
+        "to":to,
+        "content":content
+    });
+
+    ws.send(json);
+    log.innerHTML += "Me : " + content + "\n";
 }
